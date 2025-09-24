@@ -69,6 +69,7 @@ router.get('/iframe', async (req, res) => {
     } else if (userLogin && userLogin !== 'usuario') {
       // Playlist específica
       try {
+        const wowzaHost = 'stmv1.udicast.com';
         // Definir URL padrão OBS
         videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}/playlist.m3u8`;
 
@@ -94,8 +95,9 @@ router.get('/iframe', async (req, res) => {
     }
 
 
-    if (playlistRows.length > 0) {
+    if (!videoUrl && userLogin && userLogin !== 'usuario') {
       try {
+        const wowzaHost = 'stmv1.udicast.com';
         title = `Playlist: ${playlistRows[0].nome}`;
         // Para playlist, usar o primeiro vídeo
         const [videoRows] = await db.execute(
@@ -119,8 +121,7 @@ router.get('/iframe', async (req, res) => {
               const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
 
               const wowzaHost = 'stmv1.udicast.com';
-              videoUrl = `https://${wowzaHost}/${userPath}/${userPath}/mp4:${folderName}/${finalFileName}/playlist.m3u8`;
-            } else {
+              videoUrl = `https://${wowzaHost}:1935/vod/_definst_/mp4:${userPath}/${folderName}/${finalFileName}/playlist.m3u8`;
               videoUrl = `/content/${videoPath}`;
             }
           } else {
@@ -136,6 +137,7 @@ router.get('/iframe', async (req, res) => {
 
     if (video) {
       try {
+        const wowzaHost = 'stmv1.udicast.com';
         const [videoRows] = await db.execute(
           'SELECT url, nome, caminho FROM videos WHERE id = ?',
           [video]
@@ -173,6 +175,11 @@ router.get('/iframe', async (req, res) => {
     }
 
     if (!videoUrl && userLogin && userLogin !== 'usuario') {
+      // Stream padrão do usuário
+      const wowzaHost = 'stmv1.udicast.com';
+      videoUrl = `http://${wowzaHost}:80/${userLogin}/${userLogin}_live/playlist.m3u8`;
+      title = `Stream: ${userLogin}`;
+      isLive = true;
     }
 
 
